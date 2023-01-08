@@ -3,12 +3,14 @@ package main
 import (
 	"flag"
 	"fmt"
+	"net/http"
 	"os"
 )
 
 
 
 func main() {
+	port := flag.Int("port", 3000, "The port to start the CYOA web application on")
 	filename := flag.String("file", "gopher.json", "JSON file with the story")
 	flag.Parse()
 
@@ -23,12 +25,8 @@ func main() {
 
 	story := JSONStory(file)
 
-	_, ok := story["intro"]
+	http.HandleFunc("/", NewHandler(story))
 
-	if !ok {
-		fmt.Println("There is no intro chapter in story")
-		os.Exit(1)
-	}
-
-	fmt.Printf("%+v\n", story)
+	fmt.Printf("Starting the server on port: %d", *port)
+	http.ListenAndServe(fmt.Sprintf("localhost:%d", *port), nil)
 }

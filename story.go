@@ -4,8 +4,41 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
+	"okradze/cyoa/templates"
 	"os"
+	"strings"
+	"text/template"
 )
+
+
+func NewHandler(story Story) http.HandlerFunc {
+	tpl := template.Must(template.New("").Parse(templates.DefaultTemplate))
+
+	return func (w http.ResponseWriter, r *http.Request) {
+		path := strings.TrimSpace(r.URL.Path)
+
+		if path == "" || path == "/" {
+			path = "/intro"
+		}
+
+		path = path[1:]
+
+		chapter, ok := story[path]
+
+		if !ok {
+			http.Error(w, "Chapter not found", http.StatusNotFound)
+			return
+		}
+
+		err := tpl.Execute(w, chapter)
+
+		if err != nil {
+			fmt.Printf("Could not execute template: %s", err)
+			http.Error(w, "Something went wrong", http.StatusInternalServerError)
+		}
+	}
+}
 
 func JSONStory(reader io.Reader) Story {
 	decoder := json.NewDecoder(reader)
