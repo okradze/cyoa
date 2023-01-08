@@ -1,5 +1,25 @@
 package main
 
+import (
+	"encoding/json"
+	"fmt"
+	"io"
+	"os"
+)
+
+func JSONStory(reader io.Reader) Story {
+	decoder := json.NewDecoder(reader)
+	var story Story
+	err := decoder.Decode(&story)
+
+	if err != nil {
+		fmt.Println("Could not parse JSON into story. Invalid JSON")
+		os.Exit(1)
+	}
+
+	return story
+}
+
 type Story map[string]Chapter
 
 type Chapter struct {
